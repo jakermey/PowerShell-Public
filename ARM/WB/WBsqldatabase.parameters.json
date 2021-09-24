@@ -1,0 +1,36 @@
+{
+    "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentParameters.json#",
+    "contentVersion": "1.0.0.0",
+    "parameters": {
+        "sqlDBName": {
+            "value": "test2"
+        },
+        "location": {
+            "value": "westus2"
+        },
+        "administratorLogin": {
+            "value": "sqladm"
+        },
+        "administratorLoginPassword": {
+            "value": "Password101!"
+        },
+        "instance_name": {
+            "value": "sql2"
+        },
+        "resourceGroup_Vnet": {
+            "value": "templatetesting"
+        },
+        "Vnet": {
+            "value": "templatetesting"
+        },
+        "Sub_Net": {
+            "value": "sql"
+        },
+        "Key_vault": {
+            "value": "templatetesting"
+        },
+        "Key_Name": {
+            "value": "sql2"
+        }
+    }
+  }

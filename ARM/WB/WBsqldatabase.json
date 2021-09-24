@@ -44,7 +44,8 @@
             "type": "String",
             "allowedValues": [
                 "itsen-oracle-db-lab-vnet",
-                "test"
+                "test",
+                "templatetesting"
             ],
             "metadata": {
                 "description": "Virtual Network Name for Private Endpoint."
@@ -54,7 +55,9 @@
             "type": "String",
             "allowedValues": [
                 "Db",
-                "Web"
+                "Web",
+                "sql",
+                "default"
             ],
             "metadata": {
                 "description": "Virtual Network Subnet Name for Private Endpoint."
@@ -78,8 +81,8 @@
         "resourceGroupName": "[resourceGroup().name]",
         "server_name": "[concat('wbgmssql', parameters('instance_name'))]",
         "endpoint_name": "[concat(variables('server_name'), '-endpoint')]",
-        "privateLinkServiceId": "[concat ('/subscriptions/',variables('subscriptionId') , '/resourceGroups/',variables('resourceGroupName') , '/providers/Microsoft.Sql/servers/' , variables('server_name'))]",
-        "subnet_id": "[concat ('/subscriptions/', variables('subscriptionId') , '/resourceGroups/' , parameters('resourceGroup_Vnet') , '/providers/Microsoft.Network/virtualNetworks/' , parameters('VNet'), '/subnets/' , parameters('Sub_Net'))]",
+        "privateLinkServiceId": "[concat (variables('subscriptionId') , '/resourceGroups/',variables('resourceGroupName') , '/providers/Microsoft.Sql/servers/' , variables('server_name'))]",
+        "subnet_id": "[concat (variables('subscriptionId') , '/resourceGroups/' , parameters('resourceGroup_Vnet') , '/providers/Microsoft.Network/virtualNetworks/' , parameters('VNet'), '/subnets/' , parameters('Sub_Net'))]",
         "KeyVaultKeyName": "[concat(parameters('Key_vault'), '/',parameters('Key_Name'))]"
     },
     "resources": [
@@ -163,14 +166,7 @@
                 "azPowerShellVersion": "3.0",
                 "timeout": "PT30M",
                 "arguments": "", 
-                "scriptContent": "
-                    param()
-                    
-                    [String]$output = Get-Date -Date ((Get-Date).AddYears(1)) -UFormat %s
-                    $DeploymentScriptOutputs = @{}
-                    $DeploymentScriptOutputs['expireDate'] = $output
-                
-                ",
+                "primaryScriptUri": "https://raw.githubusercontent.com/jakermey/PowerShell-Public/main/WBsqldatabase.ps1",
                 "cleanupPreference": "OnSuccess",
                 "retentionInterval": "P1D"
             }
