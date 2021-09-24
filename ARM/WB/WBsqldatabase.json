@@ -82,7 +82,7 @@
         "server_name": "[concat('wbgmssql', parameters('instance_name'))]",
         "endpoint_name": "[concat(variables('server_name'), '-endpoint')]",
         "privateLinkServiceId": "[concat (variables('subscriptionId') , '/resourceGroups/',variables('resourceGroupName') , '/providers/Microsoft.Sql/servers/' , variables('server_name'))]",
-        "subnet_id": "[concat ('/subscriptions/', variables('subscriptionId') , '/resourceGroups/' , parameters('resourceGroup_Vnet') , '/providers/Microsoft.Network/virtualNetworks/' , parameters('VNet'), '/subnets/' , parameters('Sub_Net'))]",
+        "subnet_id": "[concat (variables('subscriptionId') , '/resourceGroups/' , parameters('resourceGroup_Vnet') , '/providers/Microsoft.Network/virtualNetworks/' , parameters('VNet'), '/subnets/' , parameters('Sub_Net'))]",
         "KeyVaultKeyName": "[concat(parameters('Key_vault'), '/',parameters('Key_Name'))]"
     },
     "resources": [
