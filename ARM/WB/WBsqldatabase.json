@@ -36,6 +36,11 @@
         },
         "resourceGroup_Vnet": {
             "type": "string",
+            "allowedValues": [
+                "itsen-oracle-db-networking",
+                "test",
+                "templatetesting"
+            ],
             "metadata": {
                 "description": "Virtual Network Resource group Name."
             }
@@ -97,6 +102,19 @@
             },
             "resources": [
                 {
+                    "type": "encryptionProtector",
+                    "apiVersion": "2021-02-01-preview",
+                    "name": "current",
+                    "properties": {
+                        "autoRotationEnabled": "False",
+                        "serverKeyName": "[variables('KeyVaultKeyName')]",
+                        "serverKeyType": "AzureKeyVault"
+                    },
+                    "dependsOn": [
+                        "[resourceId('Microsoft.Sql/servers', concat(variables('server_name')))]"
+                    ]
+                },
+                {
                     "type": "databases",
                     "apiVersion": "2020-02-02-preview",
                     "name": "[parameters('sqlDBName')]",
@@ -107,6 +125,20 @@
                     },
                     "dependsOn": [
                         "[resourceId('Microsoft.Sql/servers', concat(variables('server_name')))]"
+                    ],
+                    "resources": [
+                        {
+                            "comments": "Transparent Data Encryption",
+                            "name": "current",
+                            "type": "transparentDataEncryption",
+                            "apiVersion": "2017-03-01-preview",
+                            "properties": {
+                                "status": "Enabled"
+                            },
+                            "dependsOn": [
+                                "[resourceId('Microsoft.Sql/servers/databases', variables('server_name'), parameters('sqlDBName'))]"
+                            ]
+                        }
                     ]
                 },
                 {
@@ -168,7 +200,7 @@
                 "azPowerShellVersion": "3.0",
                 "timeout": "PT30M",
                 "arguments": "", 
-                "primaryScriptUri": "https://raw.githubusercontent.com/jakermey/PowerShell-Public/main/WBsqldatabase.ps1",
+                "primaryScriptUri": "https://raw.githubusercontent.com/jakermey/PowerShell-Public/main/ARM/WB/WBsqldatabase.ps1",
                 "cleanupPreference": "OnSuccess",
                 "retentionInterval": "P1D"
             }

@@ -3,7 +3,7 @@
     "contentVersion": "1.0.0.0",
     "parameters": {
         "sqlDBName": {
-            "value": "test2"
+            "value": "test4"
         },
         "location": {
             "value": "westus2"
@@ -15,7 +15,7 @@
             "value": "Password101!"
         },
         "instance_name": {
-            "value": "sql2"
+            "value": "sql4"
         },
         "resourceGroup_Vnet": {
             "value": "templatetesting"
@@ -30,7 +30,7 @@
             "value": "templatetesting"
         },
         "Key_Name": {
-            "value": "sql2"
+            "value": "sql4"
         }
     }
   }
