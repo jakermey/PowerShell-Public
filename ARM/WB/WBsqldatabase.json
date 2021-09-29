@@ -111,7 +111,7 @@
                     "name": "current",
                     "properties": {
                         "autoRotationEnabled": "False",
-                        "serverKeyName": "[variables('KeyVaultKeyName')]",
+                        "serverKeyName": "[concat(concat(variables('subscriptionId') , '/resourceGroups/',variables('resourceGroupName') , 'Microsoft.KeyVault/vaults/', parameters('Key_vault'), '2018-02-14-preview', 'Full').properties.vaultUri, 'keys/', parameters('Key_Name'), '/current')]",
                         "serverKeyType": "AzureKeyVault"
                     },
                     "dependsOn": [
