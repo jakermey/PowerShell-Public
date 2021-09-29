@@ -70,6 +70,10 @@
         },
         "Key_vault": {
             "type": "String",
+            "allowedValues": [
+                "itsen-sql-db-kv",
+                "templatetesting"
+            ],
             "metadata": {
                 "description": "The Key Vault Name for CMK."
             }
