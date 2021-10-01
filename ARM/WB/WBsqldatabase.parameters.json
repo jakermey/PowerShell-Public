@@ -3,7 +3,7 @@
     "contentVersion": "1.0.0.0",
     "parameters": {
         "sqlDBName": {
-            "value": "test4"
+            "value": "test9"
         },
         "location": {
             "value": "westus2"
@@ -15,22 +15,22 @@
             "value": "Password101!"
         },
         "instance_name": {
-            "value": "sql4"
+            "value": "sql9"
         },
         "resourceGroup_Vnet": {
-            "value": "templatetesting"
+            "value": "TemplateTesting"
         },
         "Vnet": {
             "value": "templatetesting"
         },
         "Sub_Net": {
-            "value": "sql"
+            "value": "Db"
         },
         "Key_vault": {
-            "value": "templatetesting"
+            "value": "TemplateTestingVault"
         },
         "Key_Name": {
-            "value": "sql4"
+            "value": "sql9"
         }
     }
   }

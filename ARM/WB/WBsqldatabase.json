@@ -39,7 +39,7 @@
             "allowedValues": [
                 "itsen-oracle-db-networking",
                 "test",
-                "templatetesting"
+                "TemplateTesting"
             ],
             "metadata": {
                 "description": "Virtual Network Resource group Name."
@@ -72,7 +72,7 @@
             "type": "String",
             "allowedValues": [
                 "itsen-sql-db-kv",
-                "templatetesting"
+                "TemplateTestingVault"
             ],
             "metadata": {
                 "description": "The Key Vault Name for CMK."
@@ -92,7 +92,8 @@
         "endpoint_name": "[concat(variables('server_name'), '-endpoint')]",
         "privateLinkServiceId": "[concat (variables('subscriptionId') , '/resourceGroups/',variables('resourceGroupName') , '/providers/Microsoft.Sql/servers/' , variables('server_name'))]",
         "subnet_id": "[concat (variables('subscriptionId') , '/resourceGroups/' , parameters('resourceGroup_Vnet') , '/providers/Microsoft.Network/virtualNetworks/' , parameters('VNet'), '/subnets/' , parameters('Sub_Net'))]",
-        "KeyVaultKeyName": "[concat(parameters('Key_vault'), '/',parameters('Key_Name'))]"
+        "KeyVaultKeyName": "[concat(parameters('Key_vault'), '/',parameters('Key_Name'))]",
+        "ServerKeyName": "[concat(parameters('Key_vault'),'_',parameters('Key_Name'),'_current')]"
     },
     "resources": [
         {
@@ -100,24 +101,14 @@
             "apiVersion": "2020-02-02-preview",
             "name": "[variables('server_name')]",
             "location": "[parameters('location')]",
+            "identity": {
+                "type": "SystemAssigned"
+            },
             "properties": {
                 "administratorLogin": "[parameters('administratorLogin')]",
                 "administratorLoginPassword": "[parameters('administratorLoginPassword')]"
             },
             "resources": [
-                {
-                    "type": "encryptionProtector",
-                    "apiVersion": "2021-02-01-preview",
-                    "name": "current",
-                    "properties": {
-                        "autoRotationEnabled": "False",
-                        "serverKeyName": "[concat(concat(variables('subscriptionId') , '/resourceGroups/',variables('resourceGroupName') , 'Microsoft.KeyVault/vaults/', parameters('Key_vault'), '2018-02-14-preview', 'Full').properties.vaultUri, 'keys/', parameters('Key_Name'), '/current')]",
-                        "serverKeyType": "AzureKeyVault"
-                    },
-                    "dependsOn": [
-                        "[resourceId('Microsoft.Sql/servers', concat(variables('server_name')))]"
-                    ]
-                },
                 {
                     "type": "databases",
                     "apiVersion": "2020-02-02-preview",
@@ -127,15 +118,27 @@
                         "name": "Standard",
                         "tier": "Standard"
                     },
+                    "properties": {
+                        "autoPauseDelay": -1,
+                        "catalogCollation": "DATABASE_DEFAULT",
+                        "collation": "",
+                        "createMode": "default",
+                        "isLedgerOn": false,
+                        "licenseType": "LicenseIncluded",
+                        "maxSizeBytes": 10737418240,
+                        "minCapacity": 536870912,
+                        "readScale": "Disabled",
+                        "zoneRedundant": false
+                    },
                     "dependsOn": [
                         "[resourceId('Microsoft.Sql/servers', concat(variables('server_name')))]"
                     ],
                     "resources": [
                         {
                             "comments": "Transparent Data Encryption",
-                            "name": "current",
+                            "name": "default",
                             "type": "transparentDataEncryption",
-                            "apiVersion": "2017-03-01-preview",
+                            "apiVersion": "2020-02-02-preview",
                             "properties": {
                                 "status": "Enabled"
                             },
@@ -191,6 +194,71 @@
             },
             "dependsOn": [
                 "[resourceId('Microsoft.Sql/servers', concat(variables('server_name')))]"
+            ]
+        },
+        {
+            "type": "Microsoft.Resources/deployments",
+            "apiVersion": "2020-06-01",
+            "name": "addAccessPolicy",
+            "resourceGroup": "[variables('resourceGroupName')]",
+            "dependsOn": [
+                "[resourceId('Microsoft.Sql/servers', variables('server_name'))]"
+            ],
+            "properties": {
+                "mode": "Incremental",
+                "template": {
+                    "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
+                    "contentVersion": "1.0.0.0",
+                    "resources": [
+                        {
+                            "type": "Microsoft.KeyVault/vaults/accessPolicies",
+                            "name": "[concat(parameters('Key_vault'), '/add')]",
+                            "apiVersion": "2019-09-01",
+                            "properties": {
+                                "accessPolicies": [
+                                    {
+                                        "tenantId": "[subscription().tenantId]",
+                                        "objectId": "[reference(resourceId('Microsoft.Sql/servers/', variables('server_name')), '2019-06-01-preview', 'Full').identity.principalId]",
+                                        "permissions": {
+                                            "keys": [
+                                                "get",
+                                                "wrapKey",
+                                                "unwrapKey"
+                                            ]
+                                        }
+                                    }
+                                ]
+                            }
+                        }
+                    ]
+                }
+            }
+        },
+        {
+            "name": "[concat(variables('server_name'), '/', variables('ServerKeyName'))]",
+            "type": "Microsoft.Sql/servers/keys",
+            "apiVersion": "2020-02-02-preview",
+            "dependsOn": [
+                "addAccessPolicy",
+                "[resourceId('Microsoft.Sql/servers', variables('server_name'))]"
+            ],
+            "properties": {
+                "serverKeyType": "AzureKeyVault",
+                "uri": "[concat(reference(resourceId(variables('resourceGroupName'), 'Microsoft.KeyVault/vaults/', parameters('Key_vault')), '2018-02-14-preview', 'Full').properties.vaultUri, 'keys/', parameters('Key_Name'))]"
+            }
+        },
+        {
+            "type": "Microsoft.Sql/servers/encryptionProtector",
+            "apiVersion": "2021-02-01-preview",
+            "name": "[concat(variables('server_name'), '/current')]",
+            "properties": {
+                "autoRotationEnabled": false,
+                "serverKeyName": "[variables('ServerKeyName')]",
+                "serverKeyType": "AzureKeyVault"
+            },
+            "dependsOn": [
+                "addAccessPolicy",
+                "[resourceId('Microsoft.SQL/servers/keys', variables('server_name'), variables('ServerKeyName'))]"
             ]
         },
         {

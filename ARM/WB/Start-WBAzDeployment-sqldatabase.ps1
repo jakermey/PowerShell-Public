@@ -1,0 +1,2 @@
+cd C:\Users\jakemeyers\OneDrive\Code\WindowsPowerShell\Templates
+New-AzResourceGroupDeployment -ResourceGroupName "TemplateTesting" -TemplateFile .\WBsqldatabase.json -TemplateParameterFile .\WBsqldatabase.parameters.json
