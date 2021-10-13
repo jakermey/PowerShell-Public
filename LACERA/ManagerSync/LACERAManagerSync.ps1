@@ -58,6 +58,7 @@ function ManagerLookup
 
         $managerEmployeeID = $EmployeeID.Replace('c','')
         $managerEmployeeID = $managerEmployeeID.Replace('e','')
+        Write-Host "Resolving DistinguishedName of Employee $($managerEmployeeID)"
     }
     Process
     {
@@ -68,7 +69,7 @@ function ManagerLookup
             [string]$output = $($userObject.EmployeeID)
         } elseif ( $LACERA )
         {
-            $userObject = Get-ADUser -SearchBase $OUPath -Properties "DistinguishedName","EmployeeID" | Where-Object -Property EmployeeID -EQ $managerEmployeeID
+            $userObject = Get-ADUser -Filter * -Properties "DistinguishedName","EmployeeID" | Where-Object -Property EmployeeID -EQ $managerEmployeeID
             [string]$output = $($userObject.DistinguishedName)
         } else {
             Write-Error "Invalid Input, Unknown Source of Authority"
