@@ -160,7 +160,7 @@ function StoreManager
         if ( $County -and $LACERA ) { Write-Error "Input error: multiple sources of authority indicated"}
 
         # Get User Object for Processing
-        $user = Get-ADUser -Identity $UserPrincipalName -Properties ExtensionAttribute10,Manager
+        $userToUpdate = Get-ADUser -Filter * -SearchBase $OUPath -Properties ExtensionAttribute10,Manager | Where-Object -Property UserPrincipalName -EQ $UserPrincipalName
     }
     Process
     {
@@ -168,10 +168,10 @@ function StoreManager
         {
             if ( $County )
             {
-                $userObject = Set-ADUser -Identity $($user.$UserPrincipalName) -Add @{ExtensionAttribute10 = "$($EmployeeID)"}
+                $userObject = Set-ADUser -Identity $($userToUpdate.DistinguishedName) -Add @{ExtensionAttribute10 = "$($EmployeeID)"}
             } elseif ( $LACERA )
             {
-                $userObject = Set-ADUser -Identity $($user.$UserPrincipalName) -Manager $DistinguishedName
+                $userObject = Set-ADUser -Identity $($userToUpdate.DistinguishedName) -Manager $DistinguishedName
             } else {
                 Write-Error "Invalid Input, Unknown Source of Authority"
                 break
@@ -192,7 +192,7 @@ function StoreManager
 
 $users = Get-ADUser -Filter * -SearchBase $OUPath -Properties Manager,ExtensionAttribute10 # | Where-Object -Property UserPrincipalName -EQ 'user@lacera.com'
 
-$users | foreach {
+$users | ForEach-Object {
     Write-Host "Resolving Manager ID Number $($_.ExtensionAttribute10) for user $($_.UserPrincipalName)"
     StoreManager -LACERA -UserPrincipalName $($_.UserPrincipalName) -Manager ( ManagerLookup -LACERA -EmployeeID $($_.ExtensionAttribute10) )
 }
