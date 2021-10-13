@@ -72,6 +72,7 @@
             "type": "String",
             "allowedValues": [
                 "itsen-sql-db-kv",
+                "templatetesting",
                 "TemplateTestingVault"
             ],
             "metadata": {
@@ -136,15 +137,15 @@
                     "resources": [
                         {
                             "comments": "Transparent Data Encryption",
-                            "name": "default",
+                            "name": "current",
                             "type": "transparentDataEncryption",
                             "apiVersion": "2020-02-02-preview",
                             "properties": {
-                                "status": "Enabled"
+                                "state": "Enabled"
                             },
                             "dependsOn": [
                                 "[resourceId('Microsoft.Sql/servers/databases', variables('server_name'), parameters('sqlDBName'))]"
-                            ]
+                            ]            
                         }
                     ]
                 },
