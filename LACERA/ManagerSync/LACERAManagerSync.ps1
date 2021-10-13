@@ -168,10 +168,10 @@ function StoreManager
         {
             if ( $County )
             {
-                $userObject = Set-ADUser -Identity $($userToUpdate.DistinguishedName) -Add @{ExtensionAttribute10 = "$($EmployeeID)"}
+                $userObject = Set-ADUser -Identity $($userToUpdate.DistinguishedName) -Add @{ExtensionAttribute10 = "$($EmployeeID)"} -PassThru
             } elseif ( $LACERA )
             {
-                $userObject = Set-ADUser -Identity $($userToUpdate.DistinguishedName) -Manager $DistinguishedName
+                $userObject = Set-ADUser -Identity $($userToUpdate.DistinguishedName) -Manager $DistinguishedName -PassThru
             } else {
                 Write-Error "Invalid Input, Unknown Source of Authority"
                 break
