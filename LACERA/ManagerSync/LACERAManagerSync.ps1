@@ -189,7 +189,7 @@ function StoreManager
     }
 }
 
-$users = Get-ADUser -Filter * -SearchBase $OUPath -Properties Manager,ExtensionAttribute10
+$users = Get-ADUser -Filter * -SearchBase $OUPath -Properties Manager,ExtensionAttribute10 # | Where-Object -Property UserPrincipalName -EQ 'user@lacera.com'
 
 $users | foreach {
     Write-Host "Resolving Manager ID Number $($_.ExtensionAttribute10) for user $($_.UserPrincipalName)"
