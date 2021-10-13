@@ -11,7 +11,7 @@ function ManagerLookup
     Param
     (
         # Switch indicating that execution is running on the County side
-        [Parameter(Mandatory=$true, 
+        [Parameter(Mandatory=$false, 
                    ValueFromPipeline=$true,
                    ValueFromPipelineByPropertyName=$true, 
                    ValueFromRemainingArguments=$false, 
@@ -20,7 +20,7 @@ function ManagerLookup
         [switch]$County,
 
         # Switch indicating that execution is running on the LACERA side
-        [Parameter(Mandatory=$true, 
+        [Parameter(Mandatory=$false, 
                    ValueFromPipeline=$true,
                    ValueFromPipelineByPropertyName=$true, 
                    ValueFromRemainingArguments=$false, 
@@ -29,7 +29,7 @@ function ManagerLookup
         [switch]$LACERA,
         
         # If Input is DN, Output will be Employee ID
-        [Parameter(Mandatory=$true, 
+        [Parameter(Mandatory=$false, 
                    ValueFromPipeline=$true,
                    ValueFromPipelineByPropertyName=$true, 
                    ValueFromRemainingArguments=$false, 
@@ -40,7 +40,7 @@ function ManagerLookup
         $DistinguishedName,
 
         # If Input is EmployeeID, Output will be DistinguishedName
-        [Parameter(Mandatory=$true, 
+        [Parameter(Mandatory=$false, 
                    ValueFromPipeline=$true,
                    ValueFromPipelineByPropertyName=$true, 
                    ValueFromRemainingArguments=$false, 
@@ -100,7 +100,7 @@ function StoreManager
     Param
     (
         # Switch indicating that execution is running on the County side
-        [Parameter(Mandatory=$true, 
+        [Parameter(Mandatory=$false, 
                    ValueFromPipeline=$true,
                    ValueFromPipelineByPropertyName=$true, 
                    ValueFromRemainingArguments=$false, 
@@ -109,7 +109,7 @@ function StoreManager
         [switch]$County,
 
         # Switch indicating that execution is running on the LACERA side
-        [Parameter(Mandatory=$true, 
+        [Parameter(Mandatory=$false, 
                    ValueFromPipeline=$true,
                    ValueFromPipelineByPropertyName=$true, 
                    ValueFromRemainingArguments=$false, 
@@ -118,7 +118,7 @@ function StoreManager
         [switch]$LACERA,
         
         # UPN of User for whom Manager should be stored
-        [Parameter(Mandatory=$true, 
+        [Parameter(Mandatory=$false, 
                    ValueFromPipeline=$true,
                    ValueFromPipelineByPropertyName=$true, 
                    ValueFromRemainingArguments=$false, 
@@ -130,7 +130,7 @@ function StoreManager
         $UserPrincipalName,
 
         # If Input is DistinguishedName, Manager will be referenced from ExtensionAttribute10 and stored in the Manager attribute
-        [Parameter(Mandatory=$true, 
+        [Parameter(Mandatory=$false, 
                    ValueFromPipeline=$true,
                    ValueFromPipelineByPropertyName=$true, 
                    ValueFromRemainingArguments=$false, 
