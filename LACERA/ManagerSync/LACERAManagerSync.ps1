@@ -34,7 +34,7 @@ function ManagerLookup
                    ValueFromPipelineByPropertyName=$true, 
                    ValueFromRemainingArguments=$false, 
                    Position=0,
-                   ParameterSetName='Return EmployeeID')]
+                   ParameterSetName='Parameter Set 1')]
         [Alias("Identity")]
         [Alias("DN")]
         $DistinguishedName,
@@ -45,7 +45,7 @@ function ManagerLookup
                    ValueFromPipelineByPropertyName=$true, 
                    ValueFromRemainingArguments=$false, 
                    Position=0,
-                   ParameterSetName='Return DistinguishedName')]
+                   ParameterSetName='Parameter Set 1')]
         [Alias("Employee")]
         [Alias("ID")]
         $EmployeeID
@@ -135,7 +135,7 @@ function StoreManager
                    ValueFromPipelineByPropertyName=$true, 
                    ValueFromRemainingArguments=$false, 
                    Position=0,
-                   ParameterSetName='StoreManager')]
+                   ParameterSetName='Parameter Set 1')]
         [AllowNull()]
         [AllowEmptyCollection()]
         [AllowEmptyString()]
@@ -144,7 +144,7 @@ function StoreManager
         $DistinguishedName,
 
         # If Input is EmployeeID, Manager will be referenced from the Manager attribute and stored in the ExtensionAttribute10 
-        [Parameter(ParameterSetName='StoreID')]
+        [Parameter(ParameterSetName='Parameter Set 1')]
         [AllowNull()]
         [AllowEmptyCollection()]
         [AllowEmptyString()]
