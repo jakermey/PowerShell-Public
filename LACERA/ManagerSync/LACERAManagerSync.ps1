@@ -191,7 +191,7 @@ function StoreManager
 }
 
 $users = Get-ADUser -Filter * -SearchBase $OUPath -Properties Manager,ExtensionAttribute10 # | Where-Object -Property UserPrincipalName -EQ 'user@lacera.com'
-
+[stringp[]]$failedUPN = $null
 $users | ForEach-Object {
     if ( $_.ExtensionAttribute10 ) {
         Write-Host "Resolving Manager ID Number $($_.ExtensionAttribute10) for user $($_.UserPrincipalName)"
@@ -199,5 +199,8 @@ $users | ForEach-Object {
     } else {
         Write-Error "$($_.UserPrincipalName) does not have a Manager synced from LA County records."
         Write-Warning "Skipping user $($_.UserPrincipalName)"
+        $failedUPN += $($_.UserPrincipalName)
     }
 }
+
+$failedUPN | Out-File -FilePath $env:ProgramData\LACERAManagerSync.log -Append
