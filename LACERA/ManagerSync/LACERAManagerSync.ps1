@@ -193,6 +193,11 @@ function StoreManager
 $users = Get-ADUser -Filter * -SearchBase $OUPath -Properties Manager,ExtensionAttribute10 # | Where-Object -Property UserPrincipalName -EQ 'user@lacera.com'
 
 $users | ForEach-Object {
-    Write-Host "Resolving Manager ID Number $($_.ExtensionAttribute10) for user $($_.UserPrincipalName)"
-    StoreManager -LACERA -UserPrincipalName $($_.UserPrincipalName) -Manager ( ManagerLookup -LACERA -EmployeeID $($_.ExtensionAttribute10) )
+    if ( $_.ExtensionAttribute10 ) {
+        Write-Host "Resolving Manager ID Number $($_.ExtensionAttribute10) for user $($_.UserPrincipalName)"
+        StoreManager -LACERA -UserPrincipalName $($_.UserPrincipalName) -Manager ( ManagerLookup -LACERA -EmployeeID $($_.ExtensionAttribute10) )
+    } else {
+        Write-Error "$($_.UserPrincipalName) does not have a Manager synced from LA County records."
+        Write-Warning "Skipping user $($_.UserPrincipalName)"
+    }
 }
