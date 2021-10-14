@@ -1,7 +1,7 @@
 # PowerShell-Public
 Publicly Shared PowerShell Repo of helpful scripts, cmdlets, modules, and other snippets and instructions.
 
-[![Open in Visual Studio Code](https://open.vscode.dev/badges/open-in-vscode.svg)](https://open.vscode.dev/jakermey/PowerShell-Public) [![CII Best Practices](https://bestpractices.coreinfrastructure.org/projects/5021/badge)](https://bestpractices.coreinfrastructure.org/projects/5021)
+[![Open in Visual Studio Code](https://open.vscode.dev/badges/open-in-vscode.svg)](https://open.vscode.dev/jakermey/PowerShell-Public) [![CII Best Practices](https://bestpractices.coreinfrastructure.org/projects/5318/badge)](https://bestpractices.coreinfrastructure.org/projects/5318)
 
 ## Introduction
 This is a collection of PowerShell code that published for general public use by [Jake Meyers](https://aka.ms/jrm), Senior Customer Engineer of the Microsoft Global Tech Team.
