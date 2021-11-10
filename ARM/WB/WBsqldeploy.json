@@ -1,0 +1,523 @@
+{
+    "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
+    "contentVersion": "1.0.0.0",
+    "parameters": {
+        "sqlAdministratorLogin": {
+            "type": "string",
+            "metadata": {
+                "description": "The administrator username of the SQL logical server."
+            }
+        },
+        "sqlAdministratorLoginPassword": {
+            "type": "securestring",
+            "values": "GEN-UNIQUE",
+            "metadata": {
+                "description": "The administrator password of the SQL logical server."
+            }
+        },
+        "transparentDataEncryption": {
+            "type": "string",
+            "allowedValues": [
+                "Enabled",
+                "Disabled"
+            ],
+            "Value": "Enabled",
+            "metadata": {
+                "description": "Enable or disable Transparent Data Encryption (TDE) for the database."
+            }
+        },
+        "privateEndpointName": {
+            "type": "string",
+            "value": "sqlPrivateLink",
+            "metadata": {
+                "description": "Private Link Endpoint Name"
+            }
+        },
+        "pvtendpointdnsgroupname": {
+            "type": "string",
+            "value": "sqlPrivateLink",
+            "metadata": {
+                "description": "Private Endpoint Group DNS Name"
+            }
+        },
+        "location": {
+            "type": "string",
+            "defaultValue": "[resourceGroup().location]",
+            "metadata": {
+                "description": "Location for all resources."
+            }
+        },
+        "keyName": {
+            "type": "string",
+            "value": "AzureKey",
+            "metadata": {
+                "description": "The Key Name for this instance."
+            }
+        }
+    },
+    "variables": {
+        "subscriptionId": "[subscription().id]",
+        "resourceGroupName": "[resourceGroup().name]",
+        "databaseName": "myDatabase",
+        "sqlServerName": "[concat('sqlserver', uniqueString(subscription().id, resourceGroup().id))]",  
+        "privateDnsZoneName": "[resourceId('Microsoft.Network/privateDnsZones', variables('privateDnsZoneName'))]",
+        "vnetName": "myVirtualNetwork",
+        "vnetAddressPrefix": "10.0.0.0/16",
+        "subnetAddressPrefix": "10.0.0.0/24",
+        "subnetName": "mySubnetName",
+        "privateLinkServiceId": "[resourceID(variables('sqlServerName'), environment().suffixes.keyvaultDns)]",
+        "ServerKeyName": "[concat(variables('KeyName'),'_',variables('serverKeyName'),'_current')]",
+        "key_Vault": "myKeyVaultName",
+        "keyName": "myKeyName",
+        "nicName": "[concat('nic', variables('sqlServerName'))]"
+    },
+    "resources": [
+        {
+            "name": "[concat('sqlserver', uniqueString(subscription().id, resourceGroup().id))]",
+            "type": "Microsoft.Sql/servers",
+            "apiVersion": "2021-02-01-preview",
+            "location": "[parameters('location')]",
+            "properties": {
+                "administratorLogin": "[parameters('sqlAdministratorLogin')]",
+                "administratorLoginPassword": "[parameters('sqlAdministratorLoginPassword')]"
+            }
+        },
+        {
+            "name": "[concat(variables('sqlServerName'), variables('databaseName'))]",
+            "type": "Microsoft.Sql/servers/databases",
+            "apiVersion": "2021-02-01-preview",
+            "location": "[parameters('location')]",
+            "dependsOn": [
+                "[resourceId('Microsoft.Sql/servers/databases', variables('sqlServerName'), '/sqlserver/Current')]"
+            ],
+            "properties": {
+                
+            }
+        },
+        {
+            "name": "[concat(variables('sqlServername'), '/master/Current')]",
+            "type": "Microsoft.Sql/servers/databases/transparentDataEncryption",
+            "apiVersion": "2021-02-01-preview",
+            "properties": {
+                "state": "[parameters('transparentDataEncryption')]"
+            },
+            "dependsOn": [
+                "[resourceId('Microsoft.Sql/servers', variables('sqlServerName'))]"
+            ]
+        },
+        {
+            "name": "AllowAllMicrosoftAzureIps",
+            "type": "Microsoft.Sql/servers/firewallRules",
+            "apiVersion": "2020-02-02-preview",
+            "location": "[parameters('location')]",
+            "properties": {
+                "endIpAddress": "0.0.0.0",
+                "startIpAddress": "0.0.0.0"
+            },
+            "dependsOn": [
+                "[resourceId('Microsoft.Sql/servers', variables('sqlServerName'))]"
+            ]
+        },
+        {
+            "name": "[variables('vnetName')]",
+            "type": "Microsoft.Network/virtualNetworks",
+            "apiVersion": "2020-11-01",
+            "location": "[parameters('location')]",
+            "properties": {
+                "addressSpace": {
+                    "addressPrefixes": [
+                        "[variables('vnetAddressPrefix')]"
+                    ]
+                },
+                "subnets": [
+                    {
+                        "name": "[variables('subnetName')]",
+                        "dependsOn": [
+                            "[variables('vnetName')]",
+                            "[variables('vnetAddressPrefix')]"
+                        ],
+                        "properties": {
+                            "addressPrefix": "[variables('subnetAddressPrefix')]",
+                            "privateEndpointNetworkPolicies": "Disabled",
+                            "privateLinkServiceNetworkPolicies": "Enabled",
+                            "serviceEndpoints": [
+                                {
+                                    "service": "Microsoft.Sql",
+                                    "locations": [
+                                        "[resourceGroup().location]"
+                                    ]
+                                }
+                            ],
+                            "virtualNetworkPeerings": [],
+                            "enableDdosProtection": false
+                        }
+                    }
+                ]
+            }
+        },
+        {
+            "type": "Microsoft.Network/networkInterfaces",
+            "apiVersion": "2020-11-01",
+            "name": "[variables('nicName')]",
+            "location": "[resourceGroup().location]",
+            "dependsOn": [
+                "[resourceId('Microsoft.Network/virtualNetworks/subnets', variables('vnetName'), 'sql')]"
+            ],
+            "properties": {
+                "addressPrefix": "[variables('subnetAddressPrefix')]",
+                "ipConfigurations": [
+                    {
+                        "name": "privateEndpointIpConfig.56ed54d8-e167-4580-8148-1e677d5e824f",
+                        "properties": {
+                            "privateIPAddress": "10.0.0.4",
+                            "privateIPAllocationMethod": "Dynamic",
+                            "subnet": {
+                                "id": "[resourceId('Microsoft.Network/virtualNetworks/subnets', variables('vnetName'), 'sql')]"
+                            },
+                            "primary": true,
+                            "privateIPAddressVersion": "IPv4"
+                        }
+                    }
+                ],
+                "dnsSettings": {
+                    "dnsServers": []
+                },
+                "enableAcceleratedNetworking": false,
+                "enableIPForwarding": false
+            }
+        },
+        {
+            "name": "[parameters('privateEndpointName')]",
+            "type": "Microsoft.Network/privateEndpoints",
+            "apiVersion": "2020-06-01",
+            "location": "[parameters('location')]",
+            "dependsOn": [
+                "[variables('vnetName')]",
+                "[variables('sqlServerName')]",
+                "[variables('key_Vault')]",
+                "[variables('privateLinkServiceId')]"
+            ],
+            "properties": {
+                "subnet": {
+                    "id": "[resourceId('Microsoft.Network/virtualNetworks/subnets', variables('vnetName'), 'sql')]",
+                    "name": "sql",
+                    "properties": {
+                        "addressPrefix": "[variables('subnetAddressPrefix')]"
+                    }
+                },
+                "privateLinkServiceConnections": {
+                    "name": "[Parameters('privateEndpointName')]",
+                    "privateLinkServiceId": "[variables('privateLinkServiceId')]",
+                    "groupIds": [
+                        "sqlServer"
+                    ],
+                    "privateLinkServiceConnectionState": {
+                            "actionsRequired": "None"
+                    }
+                }
+                }
+        },
+        {
+            "name": "[variables('privateDnsZoneName')]",
+            "type": "Microsoft.Network/privateDnsZones",
+            "apiVersion": "2018-09-01",
+            "location": "global",
+            "dependsOn": [
+                "[variables('vnetName')]"
+            ],
+            "properties": {}
+        },
+        {
+            "name": "[concat(variables('privateDnsZoneName'), '/', variables('privateDnsZoneName'), '-link')]",
+            "type": "Microsoft.Network/privateDnsZones/virtualNetworkLinks",
+            "apiVersion": "2020-01-01",
+            "location": "global",
+            "dependsOn": [
+                "[resourceId('Microsoft.Network/privateDnsZones', variables('privateDnsZoneName'))]",
+                "[resourceId('Microsoft.Network/virtualNetworks', variables('vnetName'))]"
+            ],
+            "properties": {
+                "registrationEnabled": false,
+                "virtualNetwork": {
+                    "id": "[resourceId('Microsoft.Network/virtualNetworks', variables('vnetName'))]"
+                }
+            }
+        },
+        {
+            "type": "Microsoft.Network/privateDnsZones/A",
+            "apiVersion": "2018-09-01",
+            "name": "[concat(variables('privateDnsZoneName'), '/sqlserver')]",
+            "dependsOn": [
+                "[resourceId('Microsoft.Network/privateDnsZones', variables('privateDnsZoneName'))]"
+            ],
+            "properties": {
+                "ttl": 3600,
+                "aRecords": [
+                    {
+                        "ipv4Address": "10.0.0.4"
+                    }
+                ]
+            }
+        },
+        {
+            "type": "Microsoft.Network/privateDnsZones/SOA",
+            "apiVersion": "2018-09-01",
+            "name": "[concat(variables('privateDnsZoneName'), '/@')]",
+            "dependsOn": [
+                "[resourceId('Microsoft.Network/privateDnsZones', variables('privateDnsZoneName'))]"
+            ],
+            "properties": {
+                "ttl": 3600,
+                "soaRecord": {
+                    "email": "azureprivatedns-host.microsoft.com",
+                    "expireTime": 2419200,
+                    "host": "azureprivatedns.net",
+                    "minimumTtl": 10,
+                    "refreshTime": 3600,
+                    "retryTime": 300,
+                    "serialNumber": 1
+                }
+            }
+        },
+        {
+            "name": "[parameters('pvtendpointdnsgroupname')]",
+            "type": "Microsoft.Network/privateEndpoints/privateDnsZoneGroups",
+            "apiVersion": "2020-06-01",
+            "location": "[parameters('location')]",
+            "dependsOn": [
+                "[resourceId('Microsoft.Network/privateDnsZones', variables('privateDnsZoneName'))]",
+                "[parameters('privateEndpointName')]"
+            ],
+            "properties": {
+                "privateDnsZoneConfigs": [
+                    {
+                        "name": "config1",
+                        "properties": {
+                            "privateDnsZoneId": "[resourceId('Microsoft.Network/privateDnsZones', variables('privateDnsZoneName'))]"
+                        }
+                    }
+                ]
+            }
+        },
+        {
+            "name": "[variables('key_Vault')]",
+            "type": "Microsoft.KeyVault/vaults",
+            "apiVersion": "2021-06-01-preview",
+            "location": "[parameters('location')]",
+            "dependsOn": [
+                "[variables('sqlServerName')]"
+            ],
+            "properties": {
+                "accessPolicy": [
+                    {
+                        "tenantId": "[[parameters('sqlServerName')]",
+                        "objectId": "[[subscription().tenantId]",
+                        "permissions": {
+                            "keys": [
+                                "Get",
+                                "List",
+                                "Update",
+                                "Create",
+                                "Import",
+                                "Delete",
+                                "Recover",
+                                "Backup",
+                                "Restore",
+                                "Decrypt",
+                                "Encrypt",
+                                "UnwrapKey",
+                                "WrapKey",
+                                "Verify",
+                                "Sign",
+                                "Purge"
+                            ],
+                            "secrets": [
+                                "Get",
+                                "List",
+                                "Set",
+                                "Delete",
+                                "Recover",
+                                "Backup",
+                                "Restore",
+                                "Purge"
+                            ],
+                            "certificates": [
+                                "Get",
+                                "List",
+                                "Update",
+                                "Create",
+                                "Import",
+                                "Delete",
+                                "Recover",
+                                "Backup",
+                                "Restore",
+                                "ManageContacts",
+                                "ManageIssuers",
+                                "GetIssuers",
+                                "ListIssuers",
+                                "SetIssuers",
+                                "DeleteIssuers",
+                                "Purge"
+                            ]
+                        }
+                    }
+                ],
+                "networkAcls": {
+                    "defaultAction": "Allow"
+                }
+            },
+        },
+        {
+            "name": "[variables('keyName')]",
+            "type": "Microsoft.KeyVault/vaults/keys",
+            "apiVersion": "2019-09-01",
+            "location": "[parameters('location')]",
+            "dependsOn": [
+                "[resourceId('Microsoft.Sql/servers', concat(variables('sqlServerName')))]"
+            ],
+            "properties": {
+                "value": "[variables('keyName')]",
+                "attributes": {
+                    "enabled": true,
+                    "nbf": "[reference('convertDataToUnix').outputs.activationDate]",
+                    "exp": "[reference('convertDataToUnixAndAdd1Year').outputs.expireDate]"
+                },
+                "kty": "RSA",
+                "keysize": 2048
+            }
+        },
+        {
+            "type": "Microsoft.KeyVault/vaults/secrets",
+            "apiVersion": "2021-06-01-preview",
+            "name": "[concat(variables('key_Vault'), '/keyname')]",
+            "location": "eastus2",
+            "dependsOn": [
+                "[resourceId('Microsoft.KeyVault/vaults', variables('key_Vault'))]"
+            ],
+            "properties": {
+                "attributes": {
+                    "enabled": true,
+                    "nbf": "[reference('convertDataToUnix').outputs.activationDate]",
+                    "exp": "[reference('convertDataToUnixAndAdd1Year').outputs.expireDate]"
+                }
+            }
+        },
+        {
+            "type": "Microsoft.Authorization/policyDefinitions",
+            "apiVersion": "2020-09-01",
+            "name": "Key Vault Access Policy",
+            "properties": {
+
+            }
+        },
+        {
+            "type": "Microsoft.Authorization/policyAssignments",
+            "apiVersion": "2019-09-01",
+            "name": "[variables('key_Vault')]",
+            "location": "[deployment().location]",
+            "dependsOn": [
+                "[variables('sqlServerName')]"
+            ]
+        },
+        {
+            "type": "Microsoft.Resources/deployments",
+            "apiVersion": "2020-06-01",
+            "name": "addAccessPolicy",
+            "resourceGroup": "[variables('resourceGroupName')]",
+            "dependsOn": [
+                "[resourceId('Microsoft.Sql/servers', variables('sqlServerName'))]"
+            ],
+            "properties": {
+                "mode": "Incremental",
+                "template": {
+                    "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
+                    "contentVersion": "1.0.0.0",
+                    "resources": [
+                        {
+                            "type": "Microsoft.KeyVault/vaults/accessPolicies",
+                            "name": "[concat(variables('Key_Vault'), '/add')]",
+                            "apiVersion": "2019-09-01",
+                            "properties": {
+                                "accessPolicies": [
+                                    {
+                                        "tenantId": "[variables('subscriptionId')]",
+                                        "objectId": "[reference(resourceId('Microsoft.Sql/servers/', variables('sqlServerName')), '2019-06-01-preview', 'Full').identity.principalId]",
+                                        "permissions": {
+                                            "keys": [
+                                                "get",
+                                                "wrapKey",
+                                                "unwrapKey"
+                                            ],
+                                            "secrets": [
+                                                "get"
+                                            ],
+                                            "certificates": []
+                                        }
+                                    }
+                                ]
+                            }
+                        }
+                    ]
+                }
+            }
+        },
+        {
+            "name": "[concat(variables('sqlServerName'), '/', variables('ServerKeyName'))]",
+            "type": "Microsoft.Sql/servers/keys",
+            "apiVersion": "2020-02-02-preview",
+            "dependsOn": [
+                "addAccessPolicy",
+                "[resourceId('Microsoft.Sql/servers', variables('sqlServerName'))]"
+            ],
+            "properties": {
+                "serverKeyType": "AzureKeyVault",
+                "uri": "[concat(reference(resourceId(variables('resourceGroupName'), 'Microsoft.KeyVault/vaults/', variables('Key_Vault')), '2018-02-14-preview', 'Full').properties.vaultUri, 'keys/', parameters('KeyName'))]",
+                "attributes": {
+                    "enabled": true,
+                    "nbf": "[reference('convertDataToUnix').outputs.activationDate]",
+                    "exp": "[reference('convertDataToUnixAndAdd1Year').outputs.expireDate]"
+                }
+            }
+        },
+        {
+            "type": "Microsoft.Sql/servers/encryptionProtector",
+            "apiVersion": "2021-02-01-preview",
+            "name": "[concat(variables('sqlServerName'), '/current')]",
+            "properties": {
+                "autoRotationEnabled": false,
+                "serverKeyName": "[variables('ServerKeyName')]",
+                "serverKeyType": "AzureKeyVault"
+            },
+            "dependsOn": [
+                "addAccessPolicy",
+                "[resourceId('Microsoft.SQL/servers/keys', variables('sqlServerName'), variables('ServerKeyName'))]"
+            ]
+        },
+        {
+            "type": "Microsoft.Resources/deploymentScripts",
+            "apiVersion": "2020-10-01",
+            "name": "ConvertDateToUnixAndAdd1Year",
+            "location": "[resourceGroup().location]",
+            "kind": "AzurePowerShell",
+            "properties": {
+                "forceUpdateTag": "1",
+                "azPowerShellVersion": "3.0",
+                "timeout": "PT30M",
+                "arguments": "", 
+                "primaryScriptUri": "https://raw.githubusercontent.com/jakermey/PowerShell-Public/main/ARM/WB/WBsqldatabase.ps1",
+                "cleanupPreference": "OnSuccess",
+                "retentionInterval": "P1D"
+            }
+        }
+    ],
+    "outputs": {
+        "sqlServerFqdn": {
+            "type": "string",
+            "value": "[reference(resourceId('Microsoft.Sql/servers/', variables('sqlServerName'))).fullyQualifiedDomainName]"
+        },
+        "databaseName": {
+            "type": "string",
+            "value": "[variables('databaseName')]"
+        }
+    }
+}
