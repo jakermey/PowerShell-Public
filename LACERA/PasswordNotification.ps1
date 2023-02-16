@@ -13,16 +13,16 @@
 ##################################################################################################################
 # Please Configure the following variables....
 $testing = $true # Set to $false to Email Users. $true to email samples to administrators only (see $sampleEmails below)
-$SearchBase="DC=it,DC=lacera,DC=com"
+$SearchBase="DC=Domain,DC=com"
 $ExcludeList="'New Employees'|'Separated Employees'"   #in the form of "SubOU1|SubOU2|SubOU3" -- possibly needing single quote for OU's with spaces, separate OU's with pipe and double-quote the list.
-$smtpServer="smtp.lacera.com"
+$smtpServer="smtp.Domain.com"
 $expireindays = 14 #number of days of soon-to-expire paswords. i.e. notify for expiring in X days (and every day until $negativedays)
 $negativedays = -1000 #negative number of days (days already-expired). i.e. notify for expired X days ago
-$from = "System Notifications <No-Reply@lacera.com>"
+$from = "System Notifications <No-Reply@domain.com>"
 $logging = $true # Set to $false to Disable Logging
 $logNonExpiring = $false
 $logFile = "c:\misc\PS-pwd-expiry.csv" # ie. c:\mylog.csv
-$adminEmailAddr = "jlyle@lacera.com" #multiple addr allowed but MUST be independent strings separated by comma
+$adminEmailAddr = "user@domain.com" #multiple addr allowed but MUST be independent strings separated by comma
 $sampleEmails = 3 #number of sample email to send to adminEmailAddr when testing ; in the form $sampleEmails="ALL" or $sampleEmails=[0..X] e.g. $sampleEmails=0 or $sampleEmails=3 or $sampleEmails="all" are all valid.
 # please edit $body variable within the code
 ###################################################################################################################
