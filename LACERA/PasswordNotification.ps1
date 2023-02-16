@@ -14,8 +14,8 @@
 # Please Configure the following variables....
 $testing = $true # Set to $false to Email Users. $true to email samples to administrators only (see $sampleEmails below)
 $SearchBase="DC=Domain,DC=com"
-$ExcludeList="'New Employees'|'Separated Employees'"   #in the form of "SubOU1|SubOU2|SubOU3" -- possibly needing single quote for OU's with spaces, separate OU's with pipe and double-quote the list.
-$smtpServer="smtp.Domain.com"
+$ExcludeList="'OU1'|'OU2'"   #in the form of "SubOU1|SubOU2|SubOU3" -- possibly needing single quote for OU's with spaces, separate OU's with pipe and double-quote the list.
+$smtpServer="email.Domain.com"
 $expireindays = 14 #number of days of soon-to-expire paswords. i.e. notify for expiring in X days (and every day until $negativedays)
 $negativedays = -1000 #negative number of days (days already-expired). i.e. notify for expired X days ago
 $from = "System Notifications <No-Reply@domain.com>"
@@ -127,11 +127,9 @@ foreach ($user in $users) {
     <p>Please visit https://portal.microsoftonline.com/ChangePassword.aspx to change your password.  Alternatively, on a Windows machine, you may press Ctrl-Alt-Del and select `"Change Password`".</p>
     <p>If you do not know your current password, <a href='https://aka.ms/sspr'>click here to email a password reset link</a>.</p>
 
-    <p>This mailbox is not monitored please send any questions to helpdesk@lacera.com</p>
+    <p>This mailbox is not monitored please send any questions to name@domain.com</p>
 
-    System Notifications<br>
-    4lacera@service-now.com<br>
-    https://4lacera.service-now.com/sp<br>
+    IT Notifications<br>
     </p>
     "
 
