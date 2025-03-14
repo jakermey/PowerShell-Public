@@ -103,10 +103,10 @@ $tickets = for ( $ticket = 1 ; $ticket -le 20000 ; $ticket++ ) {
 
 	[PSCustomObject]@{
 		ID = (New-Guid).Guid
-		Date = (Get-Date ((Get-Date).AddYears(-1)).AddDays((Get-Random -Minimum 0 -Maximum 183)) -Format 'yyyy-MM-dd HH:mm:ss')
-		CustomerID = GetCustomerId (Get-Random -Maximum 5000 -Minimum 1)
-		MovieID = GetMovieId (Get-Random -Maximum 6 -Minimum 1)
-		TheaterID = GetTheaterId (Get-Random -Maximum 6 -Minimum 1)
+		Date = (Get-Date ((Get-Date).AddYears(-1)).AddDays((Get-Random -Minimum 0 -Maximum 183)) -Format 'yyyy-MM-dd 00:00:00')
+		CustomerID = GetCustomerId (Get-Random -Maximum 5001 -Minimum 1)
+		MovieID = GetMovieId (Get-Random -Maximum 7 -Minimum 1)
+		TheaterID = GetTheaterId (Get-Random -Maximum 7 -Minimum 1)
 	}
 	
 } 
@@ -116,6 +116,7 @@ $tickets | Export-Csv ".\Tickets.csv"
 
 $ticketSales = foreach ($ticket in $tickets) {
 	[PSCustomObject]@{
+		TicketID = $ticket.ID
 		Date = Get-Date $ticket.Date
 		Customer = GetCustomerName ($ticket.CustomerID)
 		Movie = GetMovieName ($ticket.MovieID)
